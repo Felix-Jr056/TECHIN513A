@@ -1,0 +1,23 @@
+name: fox_detection
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - librosa
+  - soundfile
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pillow
+  - tqdm
+  - jupyter
+  - pip
+  - pip:
+      - gradio

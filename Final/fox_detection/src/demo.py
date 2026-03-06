@@ -218,10 +218,10 @@ def predict(
 
     if is_fox:
         avg_conf = np.mean([c for c, l in zip(confidences, labels) if l == 1])
-        label_text = "🦊 FOX DETECTED"
+        label_text = "FOX DETECTED"
     else:
         avg_conf = 1.0 - np.mean(confidences)
-        label_text = "🔇 No fox detected"
+        label_text = "No fox detected"
     confidence_text = f"{avg_conf:.1%}"
 
     # 5a. Waveform figure
@@ -284,7 +284,7 @@ def launch_demo(
                     value=choices[0],
                     label="Model",
                 )
-                analyse_btn = gr.Button("🔍 Analyse", variant="primary")
+                analyse_btn = gr.Button("Analyse", variant="primary")
 
             with gr.Column(scale=2):
                 label_output = gr.Textbox(label="Prediction", interactive=False)

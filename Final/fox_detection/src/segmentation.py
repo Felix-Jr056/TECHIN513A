@@ -244,7 +244,9 @@ def process_directory(
                 {
                     "file_id": file_id,
                     "source_file": fname,
-                    "clip_path": os.path.relpath(clip_path, output_dir),
+                    "clip_path": os.path.join(
+                        os.path.basename(output_dir), label, clip_fname
+                    ),
                     "label": label,
                     "start_sec": start_sec,
                     "end_sec": end_sec,

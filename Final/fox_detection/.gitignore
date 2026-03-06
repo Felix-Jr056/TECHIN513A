@@ -1,0 +1,47 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Data (too large for git) ──────────────────────────────
+data/raw/
+data/clips/
+data/features/
+data/spectrograms/
+data/manifest.csv
+
+# ── Model artifacts (large binary files) ──────────────────
+models/baseline/model.pkl
+models/baseline/cm_val_*.png
+models/baseline/confusion_matrix.png
+models/baseline/eval/
+models/cnn/best.pt
+models/cnn/training_curves.png
+models/cnn/eval/
+models/eval_plots/
+
+# ── macOS ─────────────────────────────────────────────────
+.DS_Store
+._*
+
+# ── IDE ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Other ─────────────────────────────────────────────────
+*.log
+.env

@@ -1,0 +1,56 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ──────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Data (large files — download via pipeline) ───────────
+Final/fox_detection/data/raw/
+Final/fox_detection/data/clips/
+Final/fox_detection/data/features/
+Final/fox_detection/data/spectrograms/
+Final/fox_detection/data/manifest.csv
+
+# ── Model artifacts (large binaries) ─────────────────────
+Final/fox_detection/models/baseline/model.pkl
+Final/fox_detection/models/baseline/cm_val_*.png
+Final/fox_detection/models/baseline/confusion_matrix.png
+Final/fox_detection/models/baseline/eval/
+Final/fox_detection/models/cnn/best.pt
+Final/fox_detection/models/cnn/training_curves.png
+Final/fox_detection/models/cnn/eval/
+Final/fox_detection/models/eval_plots/
+
+# ── macOS ─────────────────────────────────────────────────
+.DS_Store
+._*
+
+# ── IDE ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Other ─────────────────────────────────────────────────
+*.log
+.env
+
+# ── Lab5 MNIST data ───────────────────────────────────────
+Lab5/data/
+
+# ── Backup files ──────────────────────────────────────────
+Final/Final_old.ipynb
+Final/fox_detection_claude_code.md
+Final/*.docx
+Final/*.pdf

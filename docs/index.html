@@ -524,8 +524,8 @@ function buildCM(id, cm, labels) {
   if (!el) return;
   const maxC = Math.max(cm[0][0], cm[1][1]);
   const maxE = Math.max(cm[0][1], cm[1][0], 1);
-  const cg = (v,m) => `rgba(0,230,118,${(0.3+0.7*(v/m)).toFixed(2)})`;
-  const cr = (v,m) => v===0 ? 'rgba(255,23,68,0.12)' : `rgba(255,23,68,${(0.2+0.8*(v/m)).toFixed(2)})`;
+  const cg = (v,m) => `rgba(0,229,255,${(0.25+0.55*(v/m)).toFixed(2)})`;
+  const cr = (v,m) => v===0 ? 'rgba(124,77,255,0.12)' : `rgba(124,77,255,${(0.2+0.6*(v/m)).toFixed(2)})`;
 
   const cells = [
     [{ v:cm[0][0], bg:cg(cm[0][0],maxC), t:'TN', d:'True Negative', a:labels[0], p:labels[0] },

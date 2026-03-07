@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fox Audio Detection — Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --fox: #f97316;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 0 60px;
+      background: linear-gradient(135deg, #161b22 0%, #1a1f2e 50%, #1e2738 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 { font-size: 2.8rem; margin-bottom: 16px; }
+    .hero h1 span { color: var(--fox); }
+    .hero p { font-size: 1.2rem; color: var(--muted); max-width: 600px; margin: 0 auto; }
+    .badge-row { margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .badge {
+      display: inline-block; padding: 6px 16px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 600;
+      background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3);
+    }
+    .badge.fox { background: rgba(249,115,22,0.15); color: var(--fox); border-color: rgba(249,115,22,0.3); }
+    .badge.green { background: rgba(34,197,94,0.15); color: var(--green); border-color: rgba(34,197,94,0.3); }
+
+    /* Nav tabs */
+    .tab-nav {
+      display: flex; gap: 0; border-bottom: 1px solid var(--border);
+      background: var(--surface); position: sticky; top: 0; z-index: 100;
+    }
+    .tab-btn {
+      padding: 14px 24px; border: none; background: none; color: var(--muted);
+      cursor: pointer; font-size: 0.95rem; font-weight: 500;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Sections */
+    .section { display: none; padding: 48px 0; }
+    .section.active { display: block; }
+    .section h2 { font-size: 1.8rem; margin-bottom: 8px; }
+    .section .subtitle { color: var(--muted); margin-bottom: 32px; }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 24px 0; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .card .value { font-size: 2.4rem; font-weight: 700; color: var(--accent); }
+    .card .label { color: var(--muted); font-size: 0.85rem; }
+
+    /* Metric table */
+    .metric-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .metric-table th, .metric-table td {
+      padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .metric-table th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+    .metric-table td { font-size: 0.95rem; }
+    .metric-table tr:hover { background: rgba(255,255,255,0.02); }
+    .winner { color: var(--green); font-weight: 600; }
+
+    /* Image grid */
+    .img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 24px 0; }
+    .img-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; text-align: center;
+    }
+    .img-card img { max-width: 100%; height: auto; border-radius: 8px; }
+    .img-card .caption { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+
+    /* Chart container */
+    .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; }
+    .chart-container canvas { max-height: 400px; }
+
+    /* Pipeline */
+    .pipeline { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; align-items: center; }
+    .pipeline-step {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 20px; text-align: center; min-width: 140px;
+    }
+    .pipeline-step .num { font-size: 0.75rem; color: var(--accent); font-weight: 700; }
+    .pipeline-step .name { font-size: 0.9rem; font-weight: 600; }
+    .pipeline-arrow { color: var(--muted); font-size: 1.2rem; }
+
+    /* Tabs within section */
+    .inner-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .inner-tab {
+      padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: none; color: var(--muted); cursor: pointer; font-size: 0.85rem;
+    }
+    .inner-tab.active { background: rgba(88,166,255,0.15); color: var(--accent); border-color: var(--accent); }
+    .inner-content { display: none; }
+    .inner-content.active { display: block; }
+
+    footer { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.8rem; }
+      .tab-btn { padding: 10px 14px; font-size: 0.85rem; }
+      .card .value { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>🦊 <span>Fox</span> Audio Detection</h1>
+    <p>Binary audio classification for red fox (<em>Vulpes vulpes</em>) vocalisation detection using DSP + ML</p>
+    <div class="badge-row">
+      <span class="badge fox">TECHIN 513A Final Project</span>
+      <span class="badge green">CNN F1: 0.9987</span>
+      <span class="badge">17,639 Audio Clips</span>
+    </div>
+  </div>
+</section>
+
+<!-- Navigation -->
+<nav class="tab-nav">
+  <div class="container" style="display:flex; gap:0;">
+    <button class="tab-btn active" onclick="showSection('overview')">Overview</button>
+    <button class="tab-btn" onclick="showSection('dataset')">Dataset</button>
+    <button class="tab-btn" onclick="showSection('models')">Models</button>
+    <button class="tab-btn" onclick="showSection('results')">Results</button>
+    <button class="tab-btn" onclick="showSection('comparison')">Comparison</button>
+    <button class="tab-btn" onclick="showSection('overfitting')">Overfitting Check</button>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════════════ OVERVIEW ═══════════════════════════ -->
+<section id="overview" class="section active">
+  <h2>Project Overview</h2>
+  <p class="subtitle">End-to-end pipeline from raw audio to real-time detection</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step"><div class="num">STEP 1</div><div class="name">Download</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 2</div><div class="name">Segment</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 3</div><div class="name">Features</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 4</div><div class="name">Baseline</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 5</div><div class="name">CNN</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 6</div><div class="name">Evaluate</div></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><div class="num">STEP 7</div><div class="name">Demo</div></div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Data Source</h3>
+      <p>Audio recordings from <a href="https://xeno-canto.org/" target="_blank">Xeno-canto</a> API v3. Fox vocalisations (quality A+B) and non-fox sounds (European birds + mammals).</p>
+    </div>
+    <div class="card">
+      <h3>Preprocessing</h3>
+      <p>Fixed-length segmentation (3s clips, 0.5s overlap), MFCC extraction (40 coefficients → 80-dim vectors), log-mel spectrogram images (128 bands).</p>
+    </div>
+    <div class="card">
+      <h3>Baseline Models</h3>
+      <p>SVM (RBF kernel), Random Forest (200 trees), Gradient Boosting (200 estimators) — all with StandardScaler. Best: <strong>SVM</strong>.</p>
+    </div>
+    <div class="card">
+      <h3>CNN Model</h3>
+      <p>EfficientNet-B0 (ImageNet pre-trained), fine-tuned with AdamW, CosineAnnealing LR, weighted CrossEntropy, and SpecAugment-style augmentation.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 32px;">Tech Stack</h3>
+  <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="card" style="text-align:center;"><strong>Python</strong><br><span class="label">Core</span></div>
+    <div class="card" style="text-align:center;"><strong>librosa</strong><br><span class="label">Audio DSP</span></div>
+    <div class="card" style="text-align:center;"><strong>PyTorch</strong><br><span class="label">CNN</span></div>
+    <div class="card" style="text-align:center;"><strong>scikit-learn</strong><br><span class="label">Baseline</span></div>
+    <div class="card" style="text-align:center;"><strong>Gradio</strong><br><span class="label">Demo App</span></div>
+    <div class="card" style="text-align:center;"><strong>torchvision</strong><br><span class="label">Backbone</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DATASET ═══════════════════════════ -->
+<section id="dataset" class="section">
+  <h2>Dataset Statistics</h2>
+  <p class="subtitle">321 recordings → 17,639 segmented clips</p>
+
+  <div class="card-grid">
+    <div class="card"><div class="value">321</div><div class="label">Total Recordings</div></div>
+    <div class="card"><div class="value">183</div><div class="label">Fox Recordings</div></div>
+    <div class="card"><div class="value">138</div><div class="label">Non-fox Recordings</div></div>
+    <div class="card"><div class="value">17,639</div><div class="label">Total Clips (3s each)</div></div>
+  </div>
+
+  <div class="chart-container">
+    <h3>Class Distribution</h3>
+    <canvas id="classDistChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Data Split</h3>
+    <canvas id="splitChart"></canvas>
+  </div>
+
+  <table class="metric-table">
+    <thead>
+      <tr><th>Split</th><th>Total</th><th>Fox</th><th>Non-fox</th><th>% of Data</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Train</td><td>12,347</td><td>~5,680</td><td>~6,667</td><td>70%</td></tr>
+      <tr><td>Validation</td><td>2,646</td><td>~883</td><td>~1,763</td><td>15%</td></tr>
+      <tr><td>Test</td><td>2,646</td><td>883</td><td>1,763</td><td>15%</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════ MODELS ═══════════════════════════ -->
+<section id="models" class="section">
+  <h2>Model Architecture</h2>
+  <p class="subtitle">Traditional ML baseline vs. deep learning CNN</p>
+
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInner('baseline-detail')">Baseline (SVM)</button>
+    <button class="inner-tab" onclick="showInner('cnn-detail')">CNN (EfficientNet-B0)</button>
+  </div>
+
+  <div id="baseline-detail" class="inner-content active">
+    <div class="card" style="max-width: 700px;">
+      <h3>SVM Pipeline</h3>
+      <table class="metric-table">
+        <tr><td>Input</td><td>80-dim MFCC feature vector (40 means + 40 stds)</td></tr>
+        <tr><td>Scaler</td><td>StandardScaler (zero mean, unit variance)</td></tr>
+        <tr><td>Classifier</td><td>SVM with RBF kernel, probability=True</td></tr>
+        <tr><td>Selection</td><td>Best of SVM / RF / GB by validation F1</td></tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top: 32px;">Validation Confusion Matrices (All 3 Models)</h3>
+    <div class="img-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="img-card">
+        <img src="assets/cm_val_svm.png" alt="SVM CM">
+        <div class="caption">SVM (Selected)</div>
+      </div>
+      <div class="img-card">
+        <img src="assets/cm_val_random_forest.png" alt="RF CM">
+        <div class="caption">Random Forest</div>
+      </div>
+      <div class="img-card">
+        <img src="assets/cm_val_gradient_boosting.png" alt="GB CM">
+        <div class="caption">Gradient Boosting</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cnn-detail" class="inner-content">
+    <div class="card" style="max-width: 700px;">
+      <h3>EfficientNet-B0 Configuration</h3>
+      <table class="metric-table">
+        <tr><td>Backbone</td><td>EfficientNet-B0 (ImageNet pre-trained)</td></tr>
+        <tr><td>Classifier Head</td><td>Dropout(0.3) → Linear(1280, 2)</td></tr>
+        <tr><td>Optimiser</td><td>AdamW (lr=1e-3, weight_decay=1e-4)</td></tr>
+        <tr><td>Scheduler</td><td>CosineAnnealingLR (T_max=30)</td></tr>
+        <tr><td>Loss</td><td>Weighted CrossEntropyLoss (inverse-frequency)</td></tr>
+        <tr><td>Early Stopping</td><td>Patience = 7 (by val F1)</td></tr>
+        <tr><td>Image Size</td><td>128 × 128</td></tr>
+        <tr><td>Augmentation</td><td>HFlip, FreqMask(20), TimeMask(20), GaussNoise(0.01)</td></tr>
+        <tr><td>Best Epoch</td><td>9 / 16 (early stopped)</td></tr>
+        <tr><td>Best Val F1</td><td>0.9977</td></tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top: 32px;">Training Curves</h3>
+    <div class="img-card" style="max-width: 800px;">
+      <img src="assets/training_curves.png" alt="Training Curves">
+      <div class="caption">Loss convergence (left) and validation F1 (right) over 16 epochs</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ RESULTS ═══════════════════════════ -->
+<section id="results" class="section">
+  <h2>Test Set Results</h2>
+  <p class="subtitle">Evaluation on 2,646 held-out test clips (15%)</p>
+
+  <div class="card-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="card" style="text-align:center;">
+      <div class="label">SVM Accuracy</div>
+      <div class="value" style="color: var(--blue);">99.32%</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="label">SVM F1</div>
+      <div class="value" style="color: var(--blue);">0.9924</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="label">CNN Accuracy</div>
+      <div class="value" style="color: var(--fox);">99.89%</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="label">CNN F1</div>
+      <div class="value" style="color: var(--fox);">0.9987</div>
+    </div>
+  </div>
+
+  <h3>Confusion Matrices</h3>
+  <div class="img-grid">
+    <div class="img-card">
+      <img src="assets/confusion_matrix_baseline.png" alt="Baseline CM">
+      <div class="caption">Baseline SVM — Test Set</div>
+    </div>
+    <div class="img-card">
+      <img src="assets/confusion_matrix_cnn.png" alt="CNN CM">
+      <div class="caption">CNN (EfficientNet-B0) — Test Set</div>
+    </div>
+  </div>
+
+  <h3>Precision-Recall Curves</h3>
+  <div class="img-grid">
+    <div class="img-card">
+      <img src="assets/pr_curve_baseline.png" alt="Baseline PR">
+      <div class="caption">Baseline SVM — PR-AUC = 0.9995</div>
+    </div>
+    <div class="img-card">
+      <img src="assets/pr_curve_cnn.png" alt="CNN PR">
+      <div class="caption">CNN — PR-AUC = 1.0000</div>
+    </div>
+  </div>
+
+  <h3>ROC Curves</h3>
+  <div class="img-grid">
+    <div class="img-card">
+      <img src="assets/roc_curve_baseline.png" alt="Baseline ROC">
+      <div class="caption">Baseline SVM — ROC-AUC = 0.9998</div>
+    </div>
+    <div class="img-card">
+      <img src="assets/roc_curve_cnn.png" alt="CNN ROC">
+      <div class="caption">CNN — ROC-AUC = 1.0000</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ COMPARISON ═══════════════════════════ -->
+<section id="comparison" class="section">
+  <h2>Model Comparison</h2>
+  <p class="subtitle">Side-by-side performance on the test set</p>
+
+  <div class="chart-container">
+    <canvas id="comparisonChart"></canvas>
+  </div>
+
+  <table class="metric-table">
+    <thead>
+      <tr><th>Metric</th><th>Baseline SVM</th><th>CNN (EfficientNet-B0)</th><th>Δ (CNN − Baseline)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Accuracy</td><td>0.9932</td><td class="winner">0.9989</td><td style="color:var(--green);">+0.0057</td></tr>
+      <tr><td>Precision (macro)</td><td>0.9910</td><td class="winner">0.9986</td><td style="color:var(--green);">+0.0076</td></tr>
+      <tr><td>Recall (macro)</td><td>0.9938</td><td class="winner">0.9989</td><td style="color:var(--green);">+0.0051</td></tr>
+      <tr><td>F1 (macro)</td><td>0.9924</td><td class="winner">0.9987</td><td style="color:var(--green);">+0.0063</td></tr>
+      <tr><td>F1 (weighted)</td><td>0.9932</td><td class="winner">0.9989</td><td style="color:var(--green);">+0.0057</td></tr>
+      <tr><td>PR-AUC</td><td>0.9995</td><td class="winner">1.0000</td><td style="color:var(--green);">+0.0005</td></tr>
+      <tr><td>ROC-AUC</td><td>0.9998</td><td class="winner">1.0000</td><td style="color:var(--green);">+0.0002</td></tr>
+    </tbody>
+  </table>
+
+  <div class="chart-container">
+    <h3>Performance Radar</h3>
+    <canvas id="radarChart"></canvas>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ OVERFITTING CHECK ═══════════════════════════ -->
+<section id="overfitting" class="section">
+  <h2>Overfitting Check</h2>
+  <p class="subtitle">Training vs. test performance — both models show minimal gaps</p>
+
+  <div class="chart-container">
+    <h3>Train vs Test Metrics</h3>
+    <canvas id="overfitChart"></canvas>
+  </div>
+
+  <table class="metric-table">
+    <thead>
+      <tr><th>Model</th><th>Train Accuracy</th><th>Test Accuracy</th><th>Gap</th><th>Train F1</th><th>Test F1</th><th>Gap</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>SVM Baseline</td>
+        <td>0.9942</td><td>0.9932</td><td style="color:var(--green);">0.0010</td>
+        <td>0.9935</td><td>0.9924</td><td style="color:var(--green);">0.0011</td>
+      </tr>
+      <tr>
+        <td>CNN (EfficientNet-B0)</td>
+        <td>0.9989</td><td>0.9989</td><td style="color:var(--green);">0.0000</td>
+        <td>0.9987</td><td>0.9987</td><td style="color:var(--green);">0.0000</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Training Set Confusion Matrices</h3>
+  <div class="img-grid">
+    <div class="img-card">
+      <img src="assets/cm_baseline_train.png" alt="Baseline Train CM">
+      <div class="caption">Baseline SVM — Training Set (n=12,347)</div>
+    </div>
+    <div class="img-card">
+      <img src="assets/cm_cnn_train.png" alt="CNN Train CM">
+      <div class="caption">CNN (EfficientNet-B0) — Training Set (n=12,347)</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 24px; border-color: var(--green);">
+    <h3 style="color: var(--green);">Conclusion</h3>
+    <p>Both models exhibit <strong>near-zero train-test gaps</strong>, indicating that neither model is overfitting to the training data. The CNN achieves marginally better generalisation with a 0.0000 gap across all metrics.</p>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>TECHIN 513A — Fox Audio Detection &nbsp;|&nbsp; <a href="https://github.com/Felix-Jr056/TECHIN513A" target="_blank">View on GitHub</a></p>
+</footer>
+
+<script>
+// ── Tab navigation ───────────────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showInner(id) {
+  const parent = event.target.closest('.section');
+  parent.querySelectorAll('.inner-content').forEach(c => c.classList.remove('active'));
+  parent.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Charts ───────────────────────────────────────────────────────────
+const chartDefaults = {
+  color: '#e6edf3',
+  borderColor: '#30363d',
+};
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+
+// Class Distribution
+new Chart(document.getElementById('classDistChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Fox (8,109)', 'Non-fox (9,530)'],
+    datasets: [{
+      data: [8109, 9530],
+      backgroundColor: ['#f97316', '#3b82f6'],
+      borderColor: '#161b22',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 20, font: { size: 14 } } }
+    }
+  }
+});
+
+// Data Split
+new Chart(document.getElementById('splitChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Train (70%)', 'Validation (15%)', 'Test (15%)'],
+    datasets: [
+      { label: 'Fox', data: [5680, 883, 883], backgroundColor: '#f97316' },
+      { label: 'Non-fox', data: [6667, 1763, 1763], backgroundColor: '#3b82f6' },
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Clips' } } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// Comparison Bar Chart
+new Chart(document.getElementById('comparisonChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Accuracy', 'Precision', 'Recall', 'F1 (macro)', 'PR-AUC', 'ROC-AUC'],
+    datasets: [
+      { label: 'Baseline SVM', data: [0.9932, 0.9910, 0.9938, 0.9924, 0.9995, 0.9998], backgroundColor: '#3b82f6' },
+      { label: 'CNN (EfficientNet-B0)', data: [0.9989, 0.9986, 0.9989, 0.9987, 1.0000, 1.0000], backgroundColor: '#f97316' },
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { min: 0.985, max: 1.002 } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// Radar Chart
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Accuracy', 'Precision', 'Recall', 'F1', 'PR-AUC', 'ROC-AUC'],
+    datasets: [
+      { label: 'Baseline SVM', data: [0.9932, 0.9910, 0.9938, 0.9924, 0.9995, 0.9998],
+        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', pointBackgroundColor: '#3b82f6' },
+      { label: 'CNN', data: [0.9989, 0.9986, 0.9989, 0.9987, 1.0000, 1.0000],
+        borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', pointBackgroundColor: '#f97316' },
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: { r: { min: 0.985, max: 1.002, ticks: { stepSize: 0.005 } } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+
+// Overfitting Chart
+new Chart(document.getElementById('overfitChart'), {
+  type: 'bar',
+  data: {
+    labels: ['SVM — Accuracy', 'SVM — F1', 'CNN — Accuracy', 'CNN — F1'],
+    datasets: [
+      { label: 'Train', data: [0.9942, 0.9935, 0.9989, 0.9987], backgroundColor: 'rgba(59,130,246,0.7)' },
+      { label: 'Test', data: [0.9932, 0.9924, 0.9989, 0.9987], backgroundColor: 'rgba(249,115,22,0.7)' },
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: { y: { min: 0.988, max: 1.002 } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+</script>
+</body>
+</html>

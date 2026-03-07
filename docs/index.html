@@ -235,7 +235,25 @@
 
 
 
-<!-- 4. REPRODUCIBILITY -->
+<!-- 4. TRAINING SET EVALUATION -->
+<section>
+  <h2>Training Set Evaluation</h2>
+  <p style="color:var(--muted);margin-bottom:20px;font-size:0.85rem;">Confusion matrices on the training set (n = 12,347) to verify models learned without severe overfitting.</p>
+
+  <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+    <div class="metric"><div class="val" style="color:var(--accent2);">99.42%</div><div class="lbl">SVM Train Acc</div></div>
+    <div class="metric"><div class="val" style="color:var(--accent2);">0.9935</div><div class="lbl">SVM Train F1</div></div>
+    <div class="metric"><div class="val" style="color:var(--accent);">99.89%</div><div class="lbl">CNN Train Acc</div></div>
+    <div class="metric"><div class="val" style="color:var(--accent);">0.9987</div><div class="lbl">CNN Train F1</div></div>
+  </div>
+
+  <div class="cm-grid">
+    <div class="cm-box"><h4>Baseline SVM &mdash; Train</h4><div id="cmSvmTrain"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
+    <div class="cm-box"><h4>CNN EfficientNet-B0 &mdash; Train</h4><div id="cmCnnTrain"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
+  </div>
+</section>
+
+<!-- 5. REPRODUCIBILITY -->
 <section>
   <h2>Reproducibility</h2>
   <div class="setup-grid">
@@ -386,6 +404,8 @@ const L = ['Non-fox', 'Fox'];
 buildCM('cmValSvm',   [[1747,16],[5,878]], L);
 buildCM('cmValRf',    [[1735,28],[15,868]], L);
 buildCM('cmValGb',    [[1744,19],[10,873]], L);
+buildCM('cmSvmTrain', [[8173,53],[18,4103]], L);
+buildCM('cmCnnTrain', [[8214,12],[2,4119]], L);
 </script>
 </body>
 </html>

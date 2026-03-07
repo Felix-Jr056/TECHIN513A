@@ -95,6 +95,61 @@
     .img-card img { max-width: 100%; height: auto; border-radius: 8px; }
     .img-card .caption { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
 
+    /* Interactive Confusion Matrix */
+    .cm-wrapper {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; text-align: center;
+    }
+    .cm-wrapper h4 { margin-bottom: 16px; font-size: 1rem; }
+    .cm-table { margin: 0 auto; border-collapse: separate; border-spacing: 4px; }
+    .cm-table .cm-corner { width: 50px; height: 30px; }
+    .cm-table .cm-header {
+      font-size: 0.75rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px;
+    }
+    .cm-table .cm-row-label {
+      font-size: 0.75rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px; text-align: right;
+      white-space: nowrap;
+    }
+    .cm-cell {
+      width: 130px; height: 90px; border-radius: 10px; position: relative;
+      cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent;
+      vertical-align: middle;
+    }
+    .cm-cell:hover {
+      transform: scale(1.08); z-index: 2;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.3);
+    }
+    .cm-cell .cm-count {
+      font-size: 1.6rem; font-weight: 700; color: #fff; display: block;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+    .cm-cell .cm-pct {
+      font-size: 0.8rem; color: rgba(255,255,255,0.85); display: block; margin-top: 2px;
+    }
+    .cm-cell .cm-label-tag {
+      font-size: 0.65rem; font-weight: 600; color: rgba(255,255,255,0.7);
+      display: block; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .cm-tooltip {
+      display: none; position: absolute; bottom: calc(100% + 10px); left: 50%;
+      transform: translateX(-50%); background: #1e2533; border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; color: var(--text);
+      white-space: nowrap; z-index: 10; pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .cm-tooltip::after {
+      content: ''; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%); border: 6px solid transparent;
+      border-top-color: #1e2533;
+    }
+    .cm-cell:hover .cm-tooltip { display: block; }
+    .cm-axis-label {
+      font-size: 0.7rem; color: var(--muted); margin-top: 12px; font-style: italic;
+    }
+    .cm-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
     /* Chart container */
     .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 24px 0; }
     .chart-container canvas { max-height: 400px; }
@@ -267,17 +322,20 @@
 
     <h3 style="margin-top: 32px;">Validation Confusion Matrices (All 3 Models)</h3>
     <div class="img-grid" style="grid-template-columns: repeat(3, 1fr);">
-      <div class="img-card">
-        <img src="assets/cm_val_svm.png" alt="SVM CM">
-        <div class="caption">SVM (Selected)</div>
+      <div class="cm-wrapper">
+        <h4>SVM (Selected)</h4>
+        <div id="cm-val-svm"></div>
+        <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
       </div>
-      <div class="img-card">
-        <img src="assets/cm_val_random_forest.png" alt="RF CM">
-        <div class="caption">Random Forest</div>
+      <div class="cm-wrapper">
+        <h4>Random Forest</h4>
+        <div id="cm-val-rf"></div>
+        <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
       </div>
-      <div class="img-card">
-        <img src="assets/cm_val_gradient_boosting.png" alt="GB CM">
-        <div class="caption">Gradient Boosting</div>
+      <div class="cm-wrapper">
+        <h4>Gradient Boosting</h4>
+        <div id="cm-val-gb"></div>
+        <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
       </div>
     </div>
   </div>
@@ -333,13 +391,15 @@
 
   <h3>Confusion Matrices</h3>
   <div class="img-grid">
-    <div class="img-card">
-      <img src="assets/confusion_matrix_baseline.png" alt="Baseline CM">
-      <div class="caption">Baseline SVM — Test Set</div>
+    <div class="cm-wrapper">
+      <h4>Baseline SVM — Test Set (n=2,646)</h4>
+      <div id="cm-svm-test"></div>
+      <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
     </div>
-    <div class="img-card">
-      <img src="assets/confusion_matrix_cnn.png" alt="CNN CM">
-      <div class="caption">CNN (EfficientNet-B0) — Test Set</div>
+    <div class="cm-wrapper">
+      <h4>CNN (EfficientNet-B0) — Test Set (n=2,646)</h4>
+      <div id="cm-cnn-test"></div>
+      <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
     </div>
   </div>
 
@@ -428,13 +488,15 @@
 
   <h3>Training Set Confusion Matrices</h3>
   <div class="img-grid">
-    <div class="img-card">
-      <img src="assets/cm_baseline_train.png" alt="Baseline Train CM">
-      <div class="caption">Baseline SVM — Training Set (n=12,347)</div>
+    <div class="cm-wrapper">
+      <h4>Baseline SVM — Training Set (n=12,347)</h4>
+      <div id="cm-svm-train"></div>
+      <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
     </div>
-    <div class="img-card">
-      <img src="assets/cm_cnn_train.png" alt="CNN Train CM">
-      <div class="caption">CNN (EfficientNet-B0) — Training Set (n=12,347)</div>
+    <div class="cm-wrapper">
+      <h4>CNN (EfficientNet-B0) — Training Set (n=12,347)</h4>
+      <div id="cm-cnn-train"></div>
+      <p class="cm-axis-label">Predicted →&nbsp;&nbsp;|&nbsp;&nbsp;Actual ↓</p>
     </div>
   </div>
 
@@ -564,6 +626,89 @@ new Chart(document.getElementById('overfitChart'), {
     plugins: { legend: { position: 'bottom' } }
   }
 });
+
+// ── Interactive Confusion Matrices ───────────────────────────────────
+/**
+ * Build an interactive 2×2 confusion matrix heatmap.
+ * @param {string} containerId - DOM element ID
+ * @param {number[][]} cm - [[TN, FP], [FN, TP]]
+ * @param {string[]} labels - class labels, e.g. ['Non-fox', 'Fox']
+ */
+function buildConfusionMatrix(containerId, cm, labels) {
+  const total = cm[0][0] + cm[0][1] + cm[1][0] + cm[1][1];
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  // Color scales
+  const correctColor = (val, max) => {
+    const intensity = 0.35 + 0.65 * (val / max);
+    return `rgba(34, 197, 94, ${intensity})`;  // green
+  };
+  const errorColor = (val, max) => {
+    if (val === 0) return 'rgba(239, 68, 68, 0.15)';
+    const intensity = 0.25 + 0.75 * (val / Math.max(max, 1));
+    return `rgba(239, 68, 68, ${intensity})`;  // red
+  };
+
+  const maxCorrect = Math.max(cm[0][0], cm[1][1]);
+  const maxError = Math.max(cm[0][1], cm[1][0]);
+
+  const cellData = [
+    [
+      { val: cm[0][0], bg: correctColor(cm[0][0], maxCorrect), type: 'TN', desc: 'True Negative', actual: labels[0], pred: labels[0] },
+      { val: cm[0][1], bg: errorColor(cm[0][1], maxError), type: 'FP', desc: 'False Positive', actual: labels[0], pred: labels[1] },
+    ],
+    [
+      { val: cm[1][0], bg: errorColor(cm[1][0], maxError), type: 'FN', desc: 'False Negative', actual: labels[1], pred: labels[0] },
+      { val: cm[1][1], bg: correctColor(cm[1][1], maxCorrect), type: 'TP', desc: 'True Positive', actual: labels[1], pred: labels[1] },
+    ],
+  ];
+
+  let html = '<table class="cm-table">';
+  // Header row
+  html += '<tr><td class="cm-corner"></td>';
+  labels.forEach(l => { html += `<td class="cm-header">${l}</td>`; });
+  html += '</tr>';
+  // Data rows
+  cellData.forEach((row, ri) => {
+    html += `<tr><td class="cm-row-label">${labels[ri]}</td>`;
+    row.forEach(cell => {
+      const pct = (cell.val / total * 100).toFixed(1);
+      const rowTotal = cm[ri][0] + cm[ri][1];
+      const rowPct = (cell.val / rowTotal * 100).toFixed(1);
+      html += `<td class="cm-cell" style="background:${cell.bg}">
+        <span class="cm-count">${cell.val.toLocaleString()}</span>
+        <span class="cm-pct">${pct}%</span>
+        <span class="cm-label-tag">${cell.type}</span>
+        <div class="cm-tooltip">
+          <strong>${cell.desc}</strong><br>
+          Count: ${cell.val.toLocaleString()} / ${total.toLocaleString()}<br>
+          Overall: ${pct}%<br>
+          Row rate: ${rowPct}%<br>
+          Actual: ${cell.actual} → Predicted: ${cell.pred}
+        </div>
+      </td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+const lbl = ['Non-fox', 'Fox'];
+
+// Test set CMs
+buildConfusionMatrix('cm-svm-test',  [[1749, 14], [4, 879]], lbl);
+buildConfusionMatrix('cm-cnn-test',  [[1761, 2], [1, 882]], lbl);
+
+// Training set CMs
+buildConfusionMatrix('cm-svm-train', [[8173, 53], [18, 4103]], lbl);
+buildConfusionMatrix('cm-cnn-train', [[8214, 12], [2, 4119]], lbl);
+
+// Validation CMs (baseline models)
+buildConfusionMatrix('cm-val-svm', [[1747, 16], [5, 878]], lbl);
+buildConfusionMatrix('cm-val-rf',  [[1735, 28], [15, 868]], lbl);
+buildConfusionMatrix('cm-val-gb',  [[1744, 19], [10, 873]], lbl);
 </script>
 </body>
 </html>

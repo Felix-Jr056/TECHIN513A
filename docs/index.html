@@ -151,7 +151,7 @@
       <span class="tag hl">TECHIN 513A</span>
       <span class="tag">17,639 clips</span>
       <span class="tag">EfficientNet-B0</span>
-      <span class="tag hl">F1 0.9987</span>
+      <span class="tag hl">Val F1 0.9905</span>
     </div>
   </div>
 </section>
@@ -233,71 +233,9 @@
   </table>
 </section>
 
-<!-- 4. TEST RESULTS -->
-<section>
-  <h2>Test Set Results</h2>
-  <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
-    <div class="metric"><div class="val" style="color:var(--accent2);">99.32%</div><div class="lbl">SVM Accuracy</div></div>
-    <div class="metric"><div class="val" style="color:var(--accent2);">0.9924</div><div class="lbl">SVM F1</div></div>
-    <div class="metric"><div class="val" style="color:var(--accent);">99.89%</div><div class="lbl">CNN Accuracy</div></div>
-    <div class="metric"><div class="val" style="color:var(--accent);">0.9987</div><div class="lbl">CNN F1</div></div>
-  </div>
 
-  <h3>Confusion Matrices &mdash; Test Set (n = 2,646)</h3>
-  <div class="cm-grid">
-    <div class="cm-box"><h4>Baseline SVM</h4><div id="cmSvmTest"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
-    <div class="cm-box"><h4>CNN EfficientNet-B0</h4><div id="cmCnnTest"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
-  </div>
 
-  <h3>PR &amp; ROC Curves</h3>
-  <div class="chart-row">
-    <div class="chart-box"><canvas id="chartPR"></canvas></div>
-    <div class="chart-box"><canvas id="chartROC"></canvas></div>
-  </div>
-</section>
-
-<!-- 5. COMPARISON -->
-<section>
-  <h2>Model Comparison</h2>
-  <div class="chart-row">
-    <div class="chart-box"><canvas id="chartCompare"></canvas></div>
-    <div class="chart-box"><canvas id="chartRadar"></canvas></div>
-  </div>
-
-  <table class="tbl">
-    <thead><tr><th>Metric</th><th>Baseline SVM</th><th>CNN</th><th>&Delta;</th></tr></thead>
-    <tbody>
-      <tr><td>Accuracy</td><td>0.9932</td><td class="best">0.9989</td><td class="delta">+0.0057</td></tr>
-      <tr><td>Precision (macro)</td><td>0.9910</td><td class="best">0.9986</td><td class="delta">+0.0076</td></tr>
-      <tr><td>Recall (macro)</td><td>0.9938</td><td class="best">0.9989</td><td class="delta">+0.0051</td></tr>
-      <tr><td>F1 (macro)</td><td>0.9924</td><td class="best">0.9987</td><td class="delta">+0.0063</td></tr>
-      <tr><td>PR-AUC</td><td>0.9995</td><td class="best">1.0000</td><td class="delta">+0.0005</td></tr>
-      <tr><td>ROC-AUC</td><td>0.9998</td><td class="best">1.0000</td><td class="delta">+0.0002</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- 6. OVERFITTING CHECK -->
-<section>
-  <h2>Overfitting Check</h2>
-  <div class="chart-box"><canvas id="chartOverfit"></canvas></div>
-
-  <h3>Training Set Confusion Matrices (n = 12,347)</h3>
-  <div class="cm-grid">
-    <div class="cm-box"><h4>Baseline SVM &mdash; Train</h4><div id="cmSvmTrain"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
-    <div class="cm-box"><h4>CNN &mdash; Train</h4><div id="cmCnnTrain"></div><p class="cm-axis">Predicted &rarr; | Actual &darr;</p></div>
-  </div>
-
-  <table class="tbl">
-    <thead><tr><th>Model</th><th>Train Acc</th><th>Test Acc</th><th>Gap</th><th>Train F1</th><th>Test F1</th><th>Gap</th></tr></thead>
-    <tbody>
-      <tr><td>SVM</td><td>0.9942</td><td>0.9932</td><td class="delta">0.0010</td><td>0.9935</td><td>0.9924</td><td class="delta">0.0011</td></tr>
-      <tr><td>CNN</td><td>0.9989</td><td>0.9989</td><td class="delta">0.0000</td><td>0.9987</td><td>0.9987</td><td class="delta">0.0000</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- 7. REPRODUCIBILITY -->
+<!-- 4. REPRODUCIBILITY -->
 <section>
   <h2>Reproducibility</h2>
   <div class="setup-grid">
@@ -403,119 +341,7 @@ new Chart(document.getElementById('chartAblation'), {
   }
 });
 
-// ── PR Curve ────────────────────────────────────────────────────────
-new Chart(document.getElementById('chartPR'), {
-  type: 'line',
-  data: {
-    labels: Array.from({length:21}, (_,i) => (i*5).toString()),
-    datasets: [
-      { label: 'SVM (AUC=0.9995)', data: [1,1,1,1,1,1,.999,.999,.998,.998,.997,.997,.996,.996,.995,.995,.995,.995,.995,.995,.995], borderColor: PURPLE, backgroundColor: PURPLE_A+'0.08)', fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2 },
-      { label: 'CNN (AUC=1.0000)', data: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], borderColor: CYAN, backgroundColor: CYAN_A+'0.08)', fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2 },
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      x: { title: { display: true, text: 'Recall (%)', color: '#666' } },
-      y: { min: 0.99, max: 1.005, title: { display: true, text: 'Precision', color: '#666' }, ticks: { callback: v => v.toFixed(3) } }
-    },
-    plugins: {
-      title: { display: true, text: 'Precision\u2013Recall Curves', color: '#e0e0e0' },
-      legend: { position: 'bottom' },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    interaction: { mode: 'index', intersect: false }
-  }
-});
 
-// ── ROC Curve ───────────────────────────────────────────────────────
-new Chart(document.getElementById('chartROC'), {
-  type: 'line',
-  data: {
-    labels: ['0','0.001','0.005','0.01','0.02','0.05','0.1','0.2','0.5','1.0'],
-    datasets: [
-      { label: 'SVM (AUC=0.9998)', data: [0,.92,.97,.985,.992,.997,.999,1,1,1], borderColor: PURPLE, backgroundColor: PURPLE_A+'0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
-      { label: 'CNN (AUC=1.0000)', data: [0,.99,.998,1,1,1,1,1,1,1], borderColor: CYAN, backgroundColor: CYAN_A+'0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
-      { label: 'Random', data: [0,.001,.005,.01,.02,.05,.1,.2,.5,1], borderColor: '#333', borderDash: [5,5], pointRadius: 0, borderWidth: 1, fill: false },
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      x: { title: { display: true, text: 'FPR', color: '#666' } },
-      y: { min: 0, max: 1.05, title: { display: true, text: 'TPR', color: '#666' } }
-    },
-    plugins: {
-      title: { display: true, text: 'ROC Curves', color: '#e0e0e0' },
-      legend: { position: 'bottom' },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    interaction: { mode: 'index', intersect: false }
-  }
-});
-
-// ── Comparison Bar ──────────────────────────────────────────────────
-new Chart(document.getElementById('chartCompare'), {
-  type: 'bar',
-  data: {
-    labels: ['Accuracy', 'Precision', 'Recall', 'F1', 'PR-AUC', 'ROC-AUC'],
-    datasets: [
-      { label: 'Baseline SVM', data: [.9932,.9910,.9938,.9924,.9995,.9998], backgroundColor: PURPLE },
-      { label: 'CNN', data: [.9989,.9986,.9989,.9987,1,1], backgroundColor: CYAN },
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: { y: { min: 0.988, max: 1.002, ticks: { callback: v => v.toFixed(3) } } },
-    plugins: {
-      title: { display: true, text: 'SVM vs CNN \u2014 Test Metrics', color: '#e0e0e0' },
-      legend: { position: 'bottom' },
-      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(4)}` } }
-    }
-  }
-});
-
-// ── Radar ───────────────────────────────────────────────────────────
-new Chart(document.getElementById('chartRadar'), {
-  type: 'radar',
-  data: {
-    labels: ['Accuracy', 'Precision', 'Recall', 'F1', 'PR-AUC', 'ROC-AUC'],
-    datasets: [
-      { label: 'SVM', data: [.9932,.9910,.9938,.9924,.9995,.9998], borderColor: PURPLE, backgroundColor: PURPLE_A+'0.12)', pointBackgroundColor: PURPLE, borderWidth: 2 },
-      { label: 'CNN', data: [.9989,.9986,.9989,.9987,1,1], borderColor: CYAN, backgroundColor: CYAN_A+'0.12)', pointBackgroundColor: CYAN, borderWidth: 2 },
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: { r: { min: 0.988, max: 1.002, ticks: { stepSize: 0.004, color: '#666' }, grid: { color: '#1a1a1a' }, angleLines: { color: '#1a1a1a' } } },
-    plugins: {
-      title: { display: true, text: 'Performance Radar', color: '#e0e0e0' },
-      legend: { position: 'bottom' },
-      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(4)}` } }
-    }
-  }
-});
-
-// ── Overfitting ─────────────────────────────────────────────────────
-new Chart(document.getElementById('chartOverfit'), {
-  type: 'bar',
-  data: {
-    labels: ['SVM Accuracy', 'SVM F1', 'CNN Accuracy', 'CNN F1'],
-    datasets: [
-      { label: 'Train', data: [.9942,.9935,.9989,.9987], backgroundColor: PURPLE },
-      { label: 'Test', data: [.9932,.9924,.9989,.9987], backgroundColor: CYAN },
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: { y: { min: 0.990, max: 1.002, ticks: { callback: v => v.toFixed(3) } } },
-    plugins: {
-      title: { display: true, text: 'Train vs Test \u2014 Overfitting Check', color: '#e0e0e0' },
-      legend: { position: 'bottom' },
-      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(4)}` } }
-    }
-  }
-});
 
 // ── Interactive Confusion Matrices ──────────────────────────────────
 function buildCM(id, cm, labels) {
@@ -557,10 +383,6 @@ function buildCM(id, cm, labels) {
 }
 
 const L = ['Non-fox', 'Fox'];
-buildCM('cmSvmTest',  [[1749,14],[4,879]], L);
-buildCM('cmCnnTest',  [[1761,2],[1,882]], L);
-buildCM('cmSvmTrain', [[8173,53],[18,4103]], L);
-buildCM('cmCnnTrain', [[8214,12],[2,4119]], L);
 buildCM('cmValSvm',   [[1747,16],[5,878]], L);
 buildCM('cmValRf',    [[1735,28],[15,868]], L);
 buildCM('cmValGb',    [[1744,19],[10,873]], L);

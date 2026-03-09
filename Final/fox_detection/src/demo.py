@@ -14,9 +14,34 @@ from typing import Any
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import torch
 from PIL import Image
+
+# ── Dark tech plot style (matches GitHub Pages) ─────────────────────────────
+_CYAN = "#00e5ff"
+_PURPLE = "#7c4dff"
+_GREEN = "#00e676"
+_BG = "#000000"
+_SURFACE = "#0a0a0a"
+_TEXT = "#e0e0e0"
+_MUTED = "#666666"
+_FONT = "monospace"
+
+plt.rcParams.update({
+    "figure.facecolor": _BG,
+    "axes.facecolor": _SURFACE,
+    "axes.edgecolor": _MUTED,
+    "axes.labelcolor": _TEXT,
+    "text.color": _TEXT,
+    "xtick.color": _MUTED,
+    "ytick.color": _MUTED,
+    "grid.color": "#1a1a1a",
+    "font.family": _FONT,
+    "font.size": 10,
+    "savefig.facecolor": _BG,
+})
 
 from src.audio_utils import (
     compute_log_mel_spectrogram,
@@ -132,23 +157,23 @@ def _plot_waveform_with_clips(
 
     fig, ax = plt.subplots(figsize=(12, 3))
     t = np.arange(len(y)) / sr
-    ax.plot(t, y, color="steelblue", linewidth=0.4, alpha=0.7)
+    ax.plot(t, y, color=_CYAN, linewidth=0.4, alpha=0.7)
 
     for idx, (lab, conf) in enumerate(zip(labels, confidences)):
         start_s = idx * hop_samples / sr
         end_s = start_s + CLIP_DURATION
-        colour = "red" if lab == 1 else "lightgrey"
-        alpha = 0.35 if lab == 1 else 0.15
+        colour = _PURPLE if lab == 1 else "#1a1a1a"
+        alpha = 0.40 if lab == 1 else 0.20
         ax.axvspan(start_s, min(end_s, t[-1]), color=colour, alpha=alpha)
         # small label on top
         mid = (start_s + min(end_s, t[-1])) / 2
         emoji = "🦊" if lab == 1 else ""
         ax.text(mid, ax.get_ylim()[1] * 0.85, f"{emoji}{conf:.0%}",
-                ha="center", fontsize=7, color="darkred" if lab == 1 else "grey")
+                ha="center", fontsize=7, color=_CYAN if lab == 1 else _MUTED)
 
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Amplitude")
-    ax.set_title("Waveform — per-clip predictions (red = fox)")
+    ax.set_title("Waveform — per-clip predictions (purple = fox)", color=_TEXT)
     fig.tight_layout()
     return fig
 
@@ -157,12 +182,14 @@ def _plot_spectrogram(clip: np.ndarray, sr: int, title: str) -> plt.Figure:
     """Plot a log-mel spectrogram of a single clip."""
     spec = compute_log_mel_spectrogram(clip, sr)
     fig, ax = plt.subplots(figsize=(5, 3))
-    img = ax.imshow(spec, aspect="auto", origin="lower", cmap="magma",
+    img = ax.imshow(spec, aspect="auto", origin="lower", cmap="inferno",
                     extent=[0, CLIP_DURATION, 0, sr // 2])
-    fig.colorbar(img, ax=ax, format="%+2.0f dB")
+    cbar = fig.colorbar(img, ax=ax, format="%+2.0f dB")
+    cbar.ax.yaxis.set_tick_params(color=_MUTED)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=_MUTED)
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Frequency (Hz)")
-    ax.set_title(title)
+    ax.set_title(title, color=_TEXT)
     fig.tight_layout()
     return fig
 
@@ -265,11 +292,104 @@ def launch_demo(
             "No models loaded — provide at least --cnn_model or --baseline_model"
         )
 
-    with gr.Blocks(title="🦊 Red Fox Vocalisation Detector") as demo:
-        gr.Markdown("# 🦊 Red Fox Vocalisation Detector")
+    # ── Custom dark-tech CSS matching GitHub Pages theme ──────────────────
+    custom_css = """
+    :root {
+        --body-background-fill: #000000 !important;
+    }
+    .gradio-container {
+        background: #000000 !important;
+        font-family: 'SF Mono','Fira Code','Cascadia Code','JetBrains Mono',monospace !important;
+        max-width: 1100px !important;
+    }
+    .gr-box, .gr-panel, .gr-form {
+        background: #0a0a0a !important;
+        border-color: #1a1a1a !important;
+    }
+    .gr-button.gr-button-primary {
+        background: #00e5ff !important;
+        color: #000 !important;
+        border: none !important;
+        font-weight: 700 !important;
+        font-family: 'SF Mono','Fira Code',monospace !important;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .gr-button.gr-button-primary:hover {
+        background: #00b8d4 !important;
+    }
+    h1, .markdown-text h1 {
+        color: #00e5ff !important;
+        font-family: 'SF Mono','Fira Code',monospace !important;
+        font-weight: 300 !important;
+        letter-spacing: -1px;
+    }
+    .markdown-text, .markdown-text p, label, .gr-input-label {
+        color: #e0e0e0 !important;
+        font-family: 'SF Mono','Fira Code',monospace !important;
+    }
+    textarea, input, .gr-text-input {
+        background: #0a0a0a !important;
+        color: #e0e0e0 !important;
+        border-color: #1a1a1a !important;
+        font-family: 'SF Mono','Fira Code',monospace !important;
+    }
+    .gr-dropdown {
+        background: #0a0a0a !important;
+        color: #e0e0e0 !important;
+        border-color: #1a1a1a !important;
+    }
+    footer { display: none !important; }
+    .label-wrap, .icon {
+        color: #666666 !important;
+    }
+    """
+
+    dark_theme = gr.themes.Base(
+        primary_hue=gr.themes.Color(
+            c50="#e0f7fa", c100="#b2ebf2", c200="#80deea",
+            c300="#4dd0e1", c400="#26c6da", c500="#00e5ff",
+            c600="#00b8d4", c700="#0097a7", c800="#00838f",
+            c900="#006064", c950="#004d40",
+        ),
+        secondary_hue=gr.themes.Color(
+            c50="#ede7f6", c100="#d1c4e9", c200="#b39ddb",
+            c300="#9575cd", c400="#7e57c2", c500="#7c4dff",
+            c600="#651fff", c700="#6200ea", c800="#4a148c",
+            c900="#311b92", c950="#1a0066",
+        ),
+        neutral_hue=gr.themes.Color(
+            c50="#e0e0e0", c100="#bdbdbd", c200="#9e9e9e",
+            c300="#757575", c400="#616161", c500="#424242",
+            c600="#2a2a2a", c700="#1a1a1a", c800="#111111",
+            c900="#0a0a0a", c950="#000000",
+        ),
+    ).set(
+        body_background_fill="#000000",
+        body_background_fill_dark="#000000",
+        block_background_fill="#0a0a0a",
+        block_background_fill_dark="#0a0a0a",
+        block_border_color="#1a1a1a",
+        block_border_color_dark="#1a1a1a",
+        block_label_text_color="#666666",
+        block_label_text_color_dark="#666666",
+        block_title_text_color="#e0e0e0",
+        block_title_text_color_dark="#e0e0e0",
+        input_background_fill="#0a0a0a",
+        input_background_fill_dark="#0a0a0a",
+        input_border_color="#1a1a1a",
+        input_border_color_dark="#1a1a1a",
+        border_color_primary="#1a1a1a",
+        border_color_primary_dark="#1a1a1a",
+    )
+
+    with gr.Blocks(
+        title="Fox Audio Detection",
+    ) as demo:
+        gr.Markdown("# Fox **Audio Detection**")
         gr.Markdown(
-            "Upload or record an audio clip and the model will classify "
-            "whether it contains a red fox vocalisation."
+            "Upload or record audio — the model classifies whether it "
+            "contains a **red fox** vocalisation."
         )
 
         with gr.Row():
@@ -284,7 +404,7 @@ def launch_demo(
                     value=choices[0],
                     label="Model",
                 )
-                analyse_btn = gr.Button("Analyse", variant="primary")
+                analyse_btn = gr.Button("ANALYSE", variant="primary")
 
             with gr.Column(scale=2):
                 label_output = gr.Textbox(label="Prediction", interactive=False)
@@ -298,7 +418,7 @@ def launch_demo(
             outputs=[label_output, conf_output, waveform_plot, spec_plot],
         )
 
-    demo.launch(server_port=port, share=share)
+    demo.launch(server_port=port, share=share, theme=dark_theme, css=custom_css)
 
 
 # ── CLI entry point ───────────────────────────────────────────────────────────
